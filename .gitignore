@@ -1,0 +1,19 @@
+node_modules
+dist
+
+# Environment variables
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# Logs
+*.log
+*.out
+*.err
+*.out.log
+*.err.log
+
+npm-debug.log*
+local-server*.log
+.DS_Store
