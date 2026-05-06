@@ -75,16 +75,25 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use("/api/auth", ensureJwtConfigured, ensureMongoConnected, authRoutes);
 app.use("/api/users", ensureJwtConfigured, ensureMongoConnected, userRoutes);
 app.use("/api/projects", ensureJwtConfigured, ensureMongoConnected, projectRoutes);
 app.use("/api/tasks", ensureJwtConfigured, ensureMongoConnected, taskRoutes);
 app.use("/api/dashboard", ensureJwtConfigured, ensureMongoConnected, dashboardRoutes);
 
-const frontendPath = path.join(__dirname, "..", "..", "frontend", "dist");
-const hasFrontendBuild = fs.existsSync(path.join(frontendPath, "index.html"));
+const frontendPathCandidates = [
+  path.join(__dirname, "..", "..", "frontend", "dist"),
+  path.join(__dirname, "..", "frontend", "dist")
+];
+const frontendPath = frontendPathCandidates.find((candidate) =>
+  fs.existsSync(path.join(candidate, "index.html"))
+);
 
-if (process.env.NODE_ENV === "production" && hasFrontendBuild) {
+if (frontendPath) {
   app.use("/api", notFound);
 
   app.use(express.static(frontendPath));

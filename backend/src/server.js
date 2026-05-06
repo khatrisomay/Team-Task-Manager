@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import fs from "fs";
+import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -28,6 +29,8 @@ const DB_RETRY_MS = Number(process.env.DB_RETRY_MS) || 10000;
 const { default: app } = await import("./app.js");
 const { default: connectDB } = await import("./config/db.js");
 
+let server;
+
 const connectWithRetry = async () => {
   try {
     await connectDB();
@@ -38,7 +41,39 @@ const connectWithRetry = async () => {
   }
 };
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
+const shutdown = async (signal) => {
+  console.log(`${signal} received. Shutting down server.`);
+
+  if (server) {
+    server.close(async () => {
+      await mongoose.connection.close(false);
+      process.exit(0);
+    });
+    return;
+  }
+
+  process.exit(0);
+};
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+
+process.on("SIGTERM", () => {
+  shutdown("SIGTERM");
+});
+
+process.on("SIGINT", () => {
+  shutdown("SIGINT");
+});
+
+server = app.listen(PORT, HOST, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Server bound to ${HOST}:${PORT}`);
   connectWithRetry();
 });
