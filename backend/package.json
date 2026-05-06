@@ -4,6 +4,7 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
+    "build": "node --check src/server.js && node --check src/app.js && node --check src/config/db.js",
     "dev": "node src/server.js",
     "start": "node src/server.js"
   },
