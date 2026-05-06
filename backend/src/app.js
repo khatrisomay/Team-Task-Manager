@@ -5,6 +5,7 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import fs from "fs";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import morgan from "morgan";
@@ -27,9 +28,20 @@ const allowedOrigins = [
 
 const ensureMongoConnected = (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
-    return res.status(500).json({
+    return res.status(503).json({
       success: false,
       message: "Database is not connected"
+    });
+  }
+
+  next();
+};
+
+const ensureJwtConfigured = (req, res, next) => {
+  if (!process.env.JWT_SECRET) {
+    return res.status(503).json({
+      success: false,
+      message: "JWT_SECRET is not configured"
     });
   }
 
@@ -64,19 +76,21 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok", service: "team-task-manager" });
+  res.status(200).json({ status: "ok" });
 });
 
-app.use("/api/auth", ensureMongoConnected, authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/tasks", taskRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/auth", ensureJwtConfigured, ensureMongoConnected, authRoutes);
+app.use("/api/users", ensureJwtConfigured, ensureMongoConnected, userRoutes);
+app.use("/api/projects", ensureJwtConfigured, ensureMongoConnected, projectRoutes);
+app.use("/api/tasks", ensureJwtConfigured, ensureMongoConnected, taskRoutes);
+app.use("/api/dashboard", ensureJwtConfigured, ensureMongoConnected, dashboardRoutes);
 
-if (process.env.NODE_ENV === "production") {
+const frontendPath = path.join(__dirname, "..", "..", "frontend", "dist");
+const hasFrontendBuild = fs.existsSync(path.join(frontendPath, "index.html"));
+
+if (process.env.NODE_ENV === "production" && hasFrontendBuild) {
   app.use("/api", notFound);
 
-  const frontendPath = path.join(__dirname, "..", "..", "frontend", "dist");
   app.use(express.static(frontendPath));
 
   app.get("*", (req, res) => {

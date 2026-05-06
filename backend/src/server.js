@@ -21,30 +21,24 @@ if (process.env.NODE_ENV !== "production") {
   }
 }
 
-const requiredEnv = ["MONGO_URI", "JWT_SECRET"];
-const missing = requiredEnv.filter((v) => !process.env[v]);
-
-if (missing.length) {
-  console.error(`Missing required environment variables: ${missing.join(", ")}`);
-  process.exit(1);
-}
-
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
+const DB_RETRY_MS = Number(process.env.DB_RETRY_MS) || 10000;
 
 const { default: app } = await import("./app.js");
 const { default: connectDB } = await import("./config/db.js");
 
-const startServer = async () => {
+const connectWithRetry = async () => {
   try {
     await connectDB();
-    app.listen(PORT, HOST, () => {
-      console.log(`Server running on ${HOST}:${PORT}`);
-    });
   } catch (error) {
-    console.error(`Failed to start server: ${error.message}`);
-    process.exit(1);
+    console.error(`Database connection failed: ${error.message}`);
+    console.error(`Retrying database connection in ${DB_RETRY_MS}ms`);
+    setTimeout(connectWithRetry, DB_RETRY_MS);
   }
 };
 
-startServer();
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
+  connectWithRetry();
+});
