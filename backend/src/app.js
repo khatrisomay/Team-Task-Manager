@@ -75,10 +75,6 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
-});
-
 app.use("/api/auth", ensureJwtConfigured, ensureMongoConnected, authRoutes);
 app.use("/api/users", ensureJwtConfigured, ensureMongoConnected, userRoutes);
 app.use("/api/projects", ensureJwtConfigured, ensureMongoConnected, projectRoutes);
