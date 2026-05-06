@@ -2,6 +2,7 @@
   "name": "team-task-manager-backend",
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "npm@10.9.2",
   "main": "src/server.js",
   "scripts": {
     "build": "node --check src/server.js && node --check src/app.js && node --check src/config/db.js",
@@ -20,8 +21,5 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
   }
 }
