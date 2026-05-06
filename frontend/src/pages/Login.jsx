@@ -25,6 +25,7 @@ const Login = () => {
       await login(form);
       navigate("/");
     } catch (err) {
+      console.error("[login] API error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Unable to login");
     } finally {
       setLoading(false);

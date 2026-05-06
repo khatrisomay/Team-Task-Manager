@@ -18,6 +18,7 @@ export const sendTokenResponse = (res, user, statusCode = 200) => {
   });
 
   res.status(statusCode).json({
+    success: true,
     token,
     user: {
       id: user._id,

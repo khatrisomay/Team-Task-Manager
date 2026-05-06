@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import mongoose from "mongoose";
 import morgan from "morgan";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -24,6 +25,17 @@ const allowedOrigins = [
   "http://127.0.0.1:5173"
 ].filter(Boolean);
 
+const ensureMongoConnected = (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(500).json({
+      success: false,
+      message: "Database is not connected"
+    });
+  }
+
+  next();
+};
+
 app.use(
   helmet({
     contentSecurityPolicy: false
@@ -35,13 +47,15 @@ app.use(cookieParser());
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
+      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
+        return callback(null, origin || true);
       }
 
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
@@ -53,7 +67,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", service: "team-task-manager" });
 });
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", ensureMongoConnected, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);

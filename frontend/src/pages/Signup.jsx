@@ -30,6 +30,7 @@ const Signup = () => {
       await signup(form);
       navigate("/");
     } catch (err) {
+      console.error("[signup] API error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Unable to create account");
     } finally {
       setLoading(false);
