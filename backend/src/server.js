@@ -30,6 +30,7 @@ if (missing.length) {
 }
 
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || "0.0.0.0";
 
 const { default: app } = await import("./app.js");
 const { default: connectDB } = await import("./config/db.js");
@@ -37,8 +38,8 @@ const { default: connectDB } = await import("./config/db.js");
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    app.listen(PORT, HOST, () => {
+      console.log(`Server running on ${HOST}:${PORT}`);
     });
   } catch (error) {
     console.error(`Failed to start server: ${error.message}`);

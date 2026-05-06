@@ -12,9 +12,15 @@ const connectDB = async () => {
     throw new Error("MONGO_URI is missing from environment variables");
   }
 
-  const dbName = getDatabaseNameFromUri(process.env.MONGO_URI);
+  const dbName =
+    getDatabaseNameFromUri(process.env.MONGO_URI) ||
+    process.env.MONGO_DB_NAME ||
+    process.env.REQUIRED_DB_NAME;
+
   if (!dbName) {
-    throw new Error("MONGO_URI must include an explicit database name for data isolation");
+    throw new Error(
+      "Set MONGO_DB_NAME or include an explicit database name in MONGO_URI for data isolation"
+    );
   }
 
   if (process.env.REQUIRED_DB_NAME && dbName !== process.env.REQUIRED_DB_NAME) {
@@ -23,7 +29,7 @@ const connectDB = async () => {
     );
   }
 
-  const connection = await mongoose.connect(process.env.MONGO_URI);
+  const connection = await mongoose.connect(process.env.MONGO_URI, { dbName });
   console.log(`Connected to DB: ${connection.connection.name}`);
 };
 

@@ -62,7 +62,8 @@ npm run install:all
 Create `backend/.env`:
 
 ```env
-MONGO_URI=mongodb://127.0.0.1:27017/taskmanagerDB
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/
+MONGO_DB_NAME=taskmanagerDB
 REQUIRED_DB_NAME=taskmanagerDB
 JWT_SECRET=replace_with_a_secret_key
 JWT_EXPIRES_IN=7d
@@ -127,21 +128,32 @@ http://localhost:5000
 
 ## Deployment
 
-The project is ready to deploy on platforms like Railway.
+The project is ready to deploy on Railway as a single Node service. Railway builds the Vite frontend into `frontend/dist`, then the Express backend serves both `/api/*` routes and the built React app.
 
 ### Required Railway Environment Variables
 
-- `MONGO_URI`
-- `JWT_SECRET`
+- `MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/`
+- `MONGO_DB_NAME=taskmanagerDB`
+- `REQUIRED_DB_NAME=taskmanagerDB`
+- `JWT_SECRET=<long-random-secret>`
+- `JWT_EXPIRES_IN=7d`
 - `NODE_ENV=production`
 
-Basic deployment steps:
+Do not set `PORT` on Railway. Railway provides it automatically and the backend listens on `0.0.0.0:$PORT`.
 
-- Push the project to GitHub
-- Create a new Railway project from the repository
-- Add backend environment variables in Railway
-- Build the frontend
-- Start the backend server
+Optional:
+
+- `CLIENT_URL=<your-frontend-url>` only if the frontend is deployed as a separate service. For the default single-service deployment, leave it unset.
+
+### Railway Deployment Steps
+
+1. Push the project to GitHub.
+2. In Railway, create a new project and deploy from the GitHub repository.
+3. Keep the service root directory as `/` so Railway can see `railway.toml`, `package.json`, `backend`, and `frontend`.
+4. Add the required environment variables above in the service `Variables` tab.
+5. In MongoDB Atlas, allow Railway to connect. For a quick deployment, add `0.0.0.0/0` in Atlas Network Access. For production, replace that with a more restrictive network policy when available.
+6. Deploy the Railway service.
+7. After deployment, generate a Railway public domain for the service and open `/api/health` to confirm the backend is running.
 
 Useful commands:
 
