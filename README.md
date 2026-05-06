@@ -129,6 +129,12 @@ http://localhost:5000
 
 The project is ready to deploy on platforms like Railway.
 
+### Required Railway Environment Variables
+
+- `MONGO_URI`
+- `JWT_SECRET`
+- `NODE_ENV=production`
+
 Basic deployment steps:
 
 - Push the project to GitHub
@@ -150,4 +156,3 @@ In production, the backend can serve the built React frontend from `frontend/dis
 
 - Admin users can manage projects, members, and tasks.
 - Member users can view their assigned work and update task status.
-
